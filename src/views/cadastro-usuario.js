@@ -20,53 +20,31 @@ class CadastroUsuario extends React.Component {
         this.service = new UsuarioService();
     }
 
-    validar() {
-        const msgs = []
-
-        if (!this.state.nome) {
-            msgs.push("O campo nome é obirgatório!")
-        }
-
-        if (!this.state.email) {
-            msgs.push("O email é obrigatório!")
-        } else if (!this.state.email.match(/^[a-z0-9.]+@[a-z0-9]+\.[a-z]/)) {
-            msgs.push("Informe um e-mail válido")
-        }
-
-        if (!this.state.senha) {
-            msgs.push("O campo senha é obrigatório")
-        }
-        
-        if (!this.state.senha || !this.state.senhaRepeticao) {
-            msgs.push("Digite a senha duas vezes!")
-        } else if (this.state.senha !== this.state.senhaRepeticao) {
-            msgs.push("As senhas não coincidem")
-        }
-
-        return msgs;
-    }
 
     cadastrar = () => {
-        const msgs = this.validar();
-
-        if (msgs && msgs.length > 0) {
-            msgs.forEach((msg, index) => {
-                mensagemErro(msg);
-            });
-            return false;
-
-        }
+        const { nome, email, senha, senhaRepeticao } = this.state
         const usuario = {
-            nome: this.state.nome,
-            email: this.state.email,
-            senha: this.state.senha
+            nome,
+            email,
+            senha,
+            senhaRepeticao,
         }
+
+        try {
+            this.service.validar(usuario)
+        } catch (erros) {
+            const msgs = erros.mensagens;
+            msgs.forEach(msg => mensagemErro(msg))
+            return false;
+        }
+
         this.service.salvar(usuario)
             .then(response => {
                 mensagemSucesso("Usuário cadastrado do sucesso!")
                 this.props.history.push('/login')
             }).catch(error => {
-                mensagemErro(error.response.data)
+                console.log(error);
+                mensagemErro(error)
             })
 
 
@@ -117,8 +95,14 @@ class CadastroUsuario extends React.Component {
                                         placeholder="Digite novamente a senha" />
                                 </FormGroup>
                             </fieldset>
-                            <button onClick={this.cadastrar} type="button" className="btn btn-success">Salvar</button>
-                            <button onClick={this.cancelar} type="button" className="btn btn-danger">Cancelar</button>
+                            <button onClick={this.cadastrar}
+                                type="button" className="btn btn-success">
+                                <i className="pi pi-save"></i> Salvar
+                            </button>
+                            <button onClick={this.cancelar}
+                                type="button" className="btn btn-danger">
+                                <i className="pi pi-times"></i> Cancelar
+                            </button>
                         </div>
                     </div>
                 </div>
